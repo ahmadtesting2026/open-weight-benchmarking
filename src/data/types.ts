@@ -235,3 +235,55 @@ export interface HistoricalObservation {
   finish: string;
   quality: string;
 }
+
+// ── Hosting (proposal and quotes) ──────────────────────────────────────────
+
+export interface HostingGroup {
+  id: "commercial" | "open-weight" | "chinese-open-weight";
+  name: string;
+  examples: string;
+  whereItRuns: string;
+  dataAllowed: string;
+  role: string;
+}
+
+/** One rented server for one checkpoint, as quoted. Amounts in CAD for the whole server. */
+export interface GpuPlanRow {
+  label: string;
+  precision: string | null;
+  gpuConfig: string;
+  /** Short key for the config, used to reprice the row with other providers. */
+  configKey: "1x-h100" | "4x-h100" | "8x-h200" | "8x-b300";
+  cadPerHour: number;
+  cost4h: number;
+  /** Existing checkpoint this row is for. */
+  checkpointId: string;
+}
+
+export interface BudgetLine {
+  item: string;
+  cad: number;
+  kind: "line" | "subtotal" | "total";
+  note: string | null;
+}
+
+export interface ProviderQuote {
+  provider: string;
+  currency: "CAD" | "USD";
+  h200x8PerHour: number;
+  b300x8PerHour: number;
+  /** Pilot total for the 8 models, CAD (recomputed from the quoted hourly rates). */
+  pilotCad: number;
+  note: string;
+  /** Set when the provider quotes per GPU: the 8-GPU prices above are these × 8. */
+  perGpu?: { h200: number; b300: number };
+  /** Pricing page the quote was read from, when we checked it ourselves. */
+  source?: string;
+}
+
+
+export interface OpenDecision {
+  topic: string;
+  detail: string;
+  status: "to-define";
+}

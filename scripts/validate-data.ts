@@ -14,6 +14,16 @@ import {
   runs,
   historicalObservations,
   getDataset,
+  PRICE_NOTE,
+  gpuPlanRows,
+  gpuPlanTotals,
+  budgetLines,
+  spendStages,
+  fallback,
+  providerComparison,
+  externalPlan,
+  openDecisions,
+  hostingGroups,
 } from "../src/data";
 
 const errors: string[] = [];
@@ -207,6 +217,49 @@ check(
 check(contracts.every((c) => c.status === "draft" && c.prompt.kind === "proposed"), "all contracts are drafts with proposed prompts");
 check(historicalObservations.length === 4, "4 historical observations");
 check(runs.length === 0, "no current runs recorded (empty state expected)");
+
+// Hosting: the values must agree with each other. Nothing is recomputed into the data.
+const cents = (n: number) => Math.round(n * 100);
+const sameCents = (a: number, b: number) => cents(a) === cents(b);
+const sum = (ns: number[]) => ns.reduce((n, x) => n + x, 0);
+check(PRICE_NOTE === "Prices checked Nov 26, 2026. Live inventory and enterprise pricing unverified.", "hosting: price note text is exact");
+check(hostingGroups.length === 3, "hosting: 3 hosting groups");
+for (const r of gpuPlanRows) {
+  check(sameCents(r.cadPerHour * externalPlan.hoursPerCheckpoint, r.cost4h), `hosting: ${r.label} 4 h cost = CAD/h × 4`);
+}
+check(sameCents(sum(gpuPlanRows.map((r) => r.cost4h)), gpuPlanTotals.coreCad), "hosting: GPU plan total matches rows (915.44)");
+check(gpuPlanRows.length * externalPlan.hoursPerCheckpoint === gpuPlanTotals.serverHours, "hosting: 32 server-hours");
+const chineseIds = checkpoints.filter((c) => c.chinesePublisher).map((c) => c.id).sort();
+check(JSON.stringify(gpuPlanRows.map((r) => r.checkpointId).sort()) === JSON.stringify(chineseIds), "hosting: GPU plan covers exactly the Chinese checkpoints on our list");
+const line = (item: string) => budgetLines.find((b) => b.item === item)?.cad ?? NaN;
+check(sameCents(line("8 GPU checkpoints"), gpuPlanTotals.coreCad), "hosting: budget GPU line = GPU plan total");
+check(sameCents(line("8 GPU checkpoints") * 0.2, line("20% reserve")), "hosting: 20% reserve");
+check(sameCents(line("8 GPU checkpoints") + line("20% reserve"), line("Budget before tax")), "hosting: budget before tax adds up");
+check(sameCents(line("Budget before tax") * 0.13, line("13% Ontario HST")), "hosting: 13% HST");
+check(sameCents(line("Budget before tax") + line("13% Ontario HST"), line("Total")), "hosting: total adds up");
+const h100Rows = gpuPlanRows.filter((r) => r.configKey === "1x-h100");
+check(h100Rows.length === 4 && sameCents(sum(h100Rows.map((r) => r.cost4h)), spendStages[0].cad ?? NaN), "hosting: stage 1 = four single-H100 rows (62.24)");
+const runpod = providerComparison.find((p) => p.provider === "Runpod Pods")!;
+const montreal = providerComparison.find((p) => p.provider === "GPU Cloud Montréal")!;
+const movedRows = gpuPlanRows.filter((r) => fallback.movedLabels.includes(r.label));
+check(movedRows.length === fallback.movedLabels.length && movedRows.every((r) => r.configKey === "8x-b300"), "hosting: fallback moves only B300 rows");
+check(
+  sameCents((runpod.b300x8PerHour * externalPlan.cadPerUsd - montreal.b300x8PerHour) * externalPlan.hoursPerCheckpoint * movedRows.length, fallback.extraCad),
+  "hosting: Runpod fallback extra cost adds up",
+);
+const smallCad = sum(gpuPlanRows.filter((r) => r.configKey === "1x-h100" || r.configKey === "4x-h100").map((r) => r.cost4h));
+const nH200 = gpuPlanRows.filter((r) => r.configKey === "8x-h200").length;
+const nB300 = gpuPlanRows.filter((r) => r.configKey === "8x-b300").length;
+for (const p of providerComparison) {
+  const fx = p.currency === "USD" ? externalPlan.cadPerUsd : 1;
+  const total = smallCad + (p.h200x8PerHour * nH200 + p.b300x8PerHour * nB300) * fx * externalPlan.hoursPerCheckpoint;
+  check(sameCents(total, p.pilotCad), `hosting: ${p.provider} pilot total reproduces (${p.pilotCad})`);
+  if (p.perGpu) {
+    check(sameCents(p.perGpu.h200 * 8, p.h200x8PerHour) && sameCents(p.perGpu.b300 * 8, p.b300x8PerHour), `hosting: ${p.provider} 8-GPU prices = per-GPU × 8`);
+    check(!!p.source && p.source.startsWith("https://"), `hosting: ${p.provider} has a pricing-page source`);
+  }
+}
+check(openDecisions.length === 5 && openDecisions.every((d) => d.status === "to-define"), "hosting: 5 open decisions, all To define");
 
 const chinese = checkpoints.filter((c) => c.chinesePublisher).map((c) => c.name);
 console.log(`Chinese-publisher checkpoints flagged (${chinese.length}): ${chinese.join(", ")}`);

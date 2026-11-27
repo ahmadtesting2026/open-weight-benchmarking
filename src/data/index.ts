@@ -7,6 +7,7 @@ import { taskDatasets, optimizationProtocolComparison } from "./taskDatasets";
 import { contracts } from "./contracts";
 import { runs } from "./runs";
 import { historicalObservations, historicalNotSupplied, watchlistLabels } from "./historical";
+export * from "./hosting";
 import type {
   Category,
   CategoryCandidate,

@@ -160,6 +160,10 @@ export default function ProjectPlanPage() {
           </li>
           <li>Security and vulnerability review isn&rsquo;t part of this project.</li>
         </ul>
+        <p className="after-block">
+          <Link href="/hosting">How each group of models is hosted</Link>, including the proposed external GPUs for
+          Chinese models.
+        </p>
       </section>
 
       <section className="section" aria-labelledby="bands">

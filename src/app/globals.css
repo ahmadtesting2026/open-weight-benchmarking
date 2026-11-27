@@ -617,6 +617,11 @@ th.numeric {
   color: var(--caution-text);
   background: var(--caution-bg);
 }
+.tag--proposed {
+  border-color: var(--caution-rule);
+  color: var(--caution-text);
+  background: var(--caution-bg);
+}
 .tag--frozen {
   border-color: var(--accent);
   color: var(--accent);

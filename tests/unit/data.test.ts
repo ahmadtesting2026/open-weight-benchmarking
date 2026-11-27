@@ -50,3 +50,26 @@ describe("task candidate pools", () => {
     for (const t of tasks) expect(candidatesForTask(t.id).priority.length).toBeGreaterThan(0);
   });
 });
+
+describe("hosting plan", () => {
+  it("each GPU row's 4 h cost is its hourly rate × 4", async () => {
+    const { gpuPlanRows } = await import("@/data");
+    for (const r of gpuPlanRows) expect(Math.round(r.cadPerHour * 400)).toBe(Math.round(r.cost4h * 100));
+  });
+  it("the budget lines add up to the total", async () => {
+    const { budgetLines } = await import("@/data");
+    const lines = budgetLines.filter((b) => b.kind === "line");
+    const total = budgetLines.find((b) => b.kind === "total")!;
+    expect(Math.round(lines.reduce((n, b) => n + b.cad, 0) * 100)).toBe(Math.round(total.cad * 100));
+  });
+  it("plans only models on our list", async () => {
+    const { gpuPlanRows, getCheckpoint } = await import("@/data");
+    for (const r of gpuPlanRows) expect(getCheckpoint(r.checkpointId), r.label).toBeDefined();
+  });
+  it("every Chinese checkpoint has a proposed GPU row", async () => {
+    const { checkpoints, gpuPlanRowForCheckpoint } = await import("@/data");
+    for (const c of checkpoints.filter((c) => c.chinesePublisher)) {
+      expect(gpuPlanRowForCheckpoint(c.id), c.id).toBeDefined();
+    }
+  });
+});

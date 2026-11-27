@@ -159,3 +159,11 @@ test("screenshots", async ({ page }, info) => {
     await page.screenshot({ path: `${SHOTS}/${info.project.name}-${name}.png`, fullPage: true });
   }
 });
+
+test("hosting tab shows the plan with quoted prices", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Hosting" }).click();
+  await expect(page).toHaveURL(/\/hosting$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Where the models run");
+  await expect(page.getByText("Live inventory and enterprise pricing unverified.").first()).toBeVisible();
+});

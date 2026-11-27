@@ -17,6 +17,8 @@ import {
   getCategory,
   getCheckpoint,
   getTask,
+  gpuPlanRowForCheckpoint,
+  PRICE_NOTE,
   taskHref,
 } from "@/data";
 
@@ -35,6 +37,7 @@ export default async function ModelPage({ params }: PageProps<"/explorer/models/
   const cp = getCheckpoint(id);
   if (!cp) notFound();
   const entries = entriesForCheckpoint(cp.id);
+  const gpuPlan = gpuPlanRowForCheckpoint(cp.id);
 
   return (
     <ExplorerShell currentRecord="models">
@@ -133,6 +136,20 @@ export default async function ModelPage({ params }: PageProps<"/explorer/models/
             {cp.license ?? <NotSupplied />}
             <span className="sub">As listed in the notes. Internal approval: not reviewed.</span>
           </dd>
+          {gpuPlan ? (
+            <>
+              <dt>GPU plan (proposed)</dt>
+              <dd>
+                {gpuPlan.gpuConfig}
+                {gpuPlan.precision ? `, ${gpuPlan.precision}` : ""}:{" "}
+                <span className="num">CAD {gpuPlan.cadPerHour.toFixed(2)}/h</span>,{" "}
+                <span className="num">CAD {gpuPlan.cost4h.toFixed(2)}</span> for 4 h
+                <span className="sub">
+                  {PRICE_NOTE} <Link href="/hosting#gpu-plan">See the GPU plan</Link>
+                </span>
+              </dd>
+            </>
+          ) : null}
           <dt>Status</dt>
           <dd>Pending benchmark</dd>
         </dl>

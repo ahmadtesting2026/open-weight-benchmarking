@@ -7,6 +7,7 @@ const ITEMS = [
   { href: "/", label: "Project plan", match: (p: string) => p === "/" },
   { href: "/explorer", label: "Benchmark explorer", match: (p: string) => p.startsWith("/explorer") },
   { href: "/methodology", label: "Methodology", match: (p: string) => p.startsWith("/methodology") },
+  { href: "/hosting", label: "Hosting", match: (p: string) => p.startsWith("/hosting") },
   { href: "/results", label: "Results", match: (p: string) => p.startsWith("/results") },
 ];
 

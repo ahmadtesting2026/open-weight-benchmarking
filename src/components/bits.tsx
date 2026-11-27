@@ -114,6 +114,11 @@ export function EnvironmentText({ env, detail = false }: { env: ExecutionEnviron
           {env.note}
         </span>
       ) : null}
+      <span className="sub">
+        <Link href={env.kind === "on-prem" ? "/hosting#groups" : "/hosting#off-network"}>
+          How it&rsquo;s hosted
+        </Link>
+      </span>
     </>
   );
 }

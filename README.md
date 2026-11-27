@@ -37,6 +37,7 @@ npm run build && npm start
 - `/explorer`: Benchmark explorer. Category rail (a menu on phones), task pages, model and dataset records, and search at `/explorer/search?q=`.
 - `/explorer/[category]/[task]`: Evaluation contract, models to benchmark, and datasets and coverage.
 - `/methodology`: Harness, quality, freshness, cost and speed, and the decision rule.
+- `/hosting`: Where models run: the three hosting groups, the proposed external GPU pilot (quotes, budget, providers), hardware notes and open decisions.
 - `/results`: Current open-weight runs (empty for now), historical commercial observations and the earlier watchlist.
 
 Model tables have a **Model origin** filter (all, exclude Chinese models, Chinese models only). It is driven by the `chinesePublisher` field on each checkpoint.
@@ -56,6 +57,7 @@ All content lives in `src/data/` as typed records with stable IDs. Facts are kep
 | `taskDatasets.ts` | Task ↔ dataset mapping: role, slice, eligible subset, coverage gaps | Usage note |
 | `contracts.ts` | One draft evaluation contract per task | Proposal |
 | `runs.ts` | Current benchmark runs (empty) | Measurement |
+| `hosting.ts` | Hosting groups, proposed external GPU plan, budget, provider quotes, open decisions | Proposal / quote |
 | `historical.ts` | Historical commercial rows and watchlist labels, verbatim | Historical |
 
 Conventions:
